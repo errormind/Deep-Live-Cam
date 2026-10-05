@@ -224,16 +224,11 @@ pip install git+https://github.com/TencentARC/GFPGAN.git@master
 
 **CUDA Execution Provider (Nvidia)**
 
-1. Install [CUDA Toolkit 12.8.0](https://developer.nvidia.com/cuda-12-8-0-download-archive)
-2. Install [cuDNN v8.9.7 for CUDA 12.x](https://developer.nvidia.com/rdp/cudnn-archive) (required for onnxruntime-gpu):
-   - Download cuDNN v8.9.7 for CUDA 12.x
-   - Make sure the cuDNN bin directory is in your system PATH
-3. Install dependencies:
+1. Install the latest NVIDIA driver and CUDA Toolkit 12.8. For Pascal GPUs such as the GTX 10-series, use cuDNN 8.9.7; cuDNN 9 no longer supports these GPUs. On Windows the requirements pin ONNX Runtime 1.18.0 (CUDA 12/cuDNN 8) and cuDNN 8.9.7, and use NumPy 1.x/OpenCV 4.11 for compatibility.
+2. Install dependencies in your virtual environment:
 
 ```bash
-pip install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-pip uninstall onnxruntime onnxruntime-gpu
-pip install onnxruntime-gpu==1.26.0
+python -m pip install -r requirements.txt
 ```
 
 3. Usage:

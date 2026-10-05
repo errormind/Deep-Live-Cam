@@ -7,6 +7,11 @@ import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 os.environ["PATH"] = project_root + os.pathsep + os.environ.get("PATH", "")
 
+# Keep the directory handles alive for the process lifetime; otherwise
+# os.add_dll_directory() unregisters the DLL search path when its handle is
+# garbage-collected.
+_dll_directory_handles = []
+
 # On Windows, register NVIDIA CUDA DLL directories so onnxruntime-gpu can
 # find cuDNN/cublas. Python 3.8+ ignores PATH for extension-module native deps —
 # os.add_dll_directory() is required. Also keep PATH for child processes/ffmpeg.
@@ -27,9 +32,19 @@ if sys.platform == "win32":
         for _d in _candidate_dirs:
             os.environ["PATH"] = _d + os.pathsep + os.environ["PATH"]
             try:
-                os.add_dll_directory(_d)
+                _dll_directory_handles.append(os.add_dll_directory(_d))
             except (OSError, AttributeError):
                 pass
+
+    # Also expose the system CUDA Toolkit DLLs. Legacy GPUs such as Pascal
+    # use the CUDA 12/cuDNN 8 runtime rather than the newer cuDNN 9 stack.
+    _cuda_bin = os.path.join(os.environ.get("CUDA_PATH", ""), "bin")
+    if os.path.isdir(_cuda_bin):
+        os.environ["PATH"] = _cuda_bin + os.pathsep + os.environ["PATH"]
+        try:
+            _dll_directory_handles.append(os.add_dll_directory(_cuda_bin))
+        except (OSError, AttributeError):
+            pass
 
     # On Windows, register OpenVINO DLL directories so onnxruntime's
     # OpenVINOExecutionProvider can find openvino.dll.  This must happen
